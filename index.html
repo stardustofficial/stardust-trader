@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
   <title>Stardust Trader · Pro Paper</title>
-  <!-- Font Awesome -->
+  <!-- Font Awesome (SVG icons) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -118,7 +118,7 @@
   <div class="app-container">
     <!-- Top Bar -->
     <div class="top-bar">
-      <div class="brand"><i class="fas fa-rocket"></i> Stardust Trader <span class="badge-paper" style="margin-left:10px;">📘 PAPER</span></div>
+      <div class="brand"><i class="fas fa-rocket"></i> Stardust Trader <span class="badge-paper" style="margin-left:10px;">PAPER</span></div>
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div class="wallet-badge">
           <div class="wallet-item"><i class="fas fa-wallet"></i> <span class="num" id="cashDisplay">$10,000.00</span></div>
@@ -131,7 +131,7 @@
 
     <!-- Search & Watchlist -->
     <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px;">
-      <input class="search-input" id="searchInput" placeholder="🔍 Search asset... (BTC, Reliance, BMW...)" />
+      <input class="search-input" id="searchInput" placeholder="Search asset... (BTC, Reliance, BMW...)" />
       <span style="font-size:0.8rem; color:#7b8db5;"><i class="fas fa-heart" style="color:#f1c40f;"></i> Watchlist: <span id="watchlistDisplay">BTC, ETH, TSLA</span></span>
     </div>
 
@@ -241,25 +241,25 @@
       <div class="movers-card" style="grid-column:1/-1;">
         <h4 style="margin-bottom:4px;"><i class="fas fa-fire" style="color:#f1c40f;margin-right:6px;"></i>Market Movers</h4>
         <div class="movers-grid" id="moversContainer">
-          <div>🔥 Top Gainers: BTC +3.2%</div>
-          <div>📉 Top Losers: ETH -1.8%</div>
-          <div>⚡ Most Active: SOL</div>
+          <div>Top Gainers: BTC +3.2%</div>
+          <div>Top Losers: ETH -1.8%</div>
+          <div>Most Active: SOL</div>
         </div>
       </div>
 
       <!-- AI Trade Review -->
       <div class="ai-card" style="grid-column:1/-1;">
         <h4 style="margin-bottom:4px;"><i class="fas fa-robot" style="color:#f1c40f;margin-right:6px;"></i>AI Trade Review</h4>
-        <div class="ai-review-box" id="aiReviewBox">📊 Your trades will be reviewed here. Sell to get AI insights.</div>
+        <div class="ai-review-box" id="aiReviewBox">Your trades will be reviewed here. Sell to get AI insights.</div>
       </div>
 
       <!-- Learning Academy -->
       <div class="learn-card" style="grid-column:1/-1;">
         <h4 style="margin-bottom:4px;"><i class="fas fa-graduation-cap" style="color:#f1c40f;margin-right:6px;"></i>Learning Academy</h4>
-        <div class="lesson-item">📖 Candlestick Patterns: Doji, Hammer, Engulfing</div>
-        <div class="lesson-item">📊 RSI & MACD Indicators</div>
-        <div class="lesson-item">🧠 Risk Management: 1% Rule</div>
-        <div style="font-size:0.7rem;color:#7b8db5;margin-top:4px;">🏆 Quiz & Certificates coming soon!</div>
+        <div class="lesson-item">Candlestick Patterns: Doji, Hammer, Engulfing</div>
+        <div class="lesson-item">RSI & MACD Indicators</div>
+        <div class="lesson-item">Risk Management: 1% Rule</div>
+        <div style="font-size:0.7rem;color:#7b8db5;margin-top:4px;">Quiz & Certificates coming soon!</div>
       </div>
 
       <!-- Trade History -->
@@ -318,7 +318,7 @@
     let chart, candlestickSeries, candleData = [];
     let pieChartInstance = null;
 
-    // Expanded asset list with prices
+    // Expanded asset list with prices (will be updated dynamically)
     const assetPrices = {
       BTC: 28450, ETH: 1800, SOL: 95, AAPL: 175, TSLA: 220, GOLD: 1950,
       RELIANCE: 2600, JIO: 890, BMW: 105, LAMBORGHINI: 320, TCS: 3850,
@@ -336,14 +336,20 @@
       const price = currentPrice;
 
       document.getElementById('cashDisplay').textContent = `$${cash.toFixed(2)}`;
-      // Total portfolio value (all holdings)
+      // Total portfolio value (all holdings) - using assetPrices which is kept in sync
       let totalHoldingsValue = 0;
-      holdings.forEach(h => { totalHoldingsValue += h.qty * (assetPrices[h.symbol] || currentPrice); });
+      holdings.forEach(h => { 
+        const hPrice = assetPrices[h.symbol] || currentPrice;
+        totalHoldingsValue += h.qty * hPrice;
+      });
       const totalVal = cash + totalHoldingsValue;
       document.getElementById('totalValueLabel').textContent = `$${totalVal.toFixed(2)}`;
       // Unrealized P&L (all holdings)
       let totalUnrealized = 0;
-      holdings.forEach(h => { totalUnrealized += h.qty * ((assetPrices[h.symbol] || currentPrice) - h.avgPrice); });
+      holdings.forEach(h => { 
+        const hPrice = assetPrices[h.symbol] || currentPrice;
+        totalUnrealized += h.qty * (hPrice - h.avgPrice);
+      });
       const totalPnl = realizedPnl + totalUnrealized;
       const pnlEl = document.getElementById('pnlDisplay');
       pnlEl.textContent = (totalPnl >= 0 ? '+' : '') + `$${totalPnl.toFixed(2)}`;
@@ -362,7 +368,8 @@
       } else {
         let html = '';
         assetHoldings.forEach(h => {
-          const pl = h.qty * ((assetPrices[h.symbol] || currentPrice) - h.avgPrice);
+          const hPrice = assetPrices[h.symbol] || currentPrice;
+          const pl = h.qty * (hPrice - h.avgPrice);
           const cls = pl >= 0 ? 'pl' : 'pl negative';
           html += `<div class="holding-item"><span class="holding-symbol">${h.symbol}</span><div class="holding-details"><span>${h.qty.toFixed(4)}</span><span>@ $${h.avgPrice.toFixed(2)}</span><span class="${cls}">${pl >= 0 ? '+' : ''}$${pl.toFixed(2)}</span></div></div>`;
         });
@@ -425,7 +432,8 @@
       const data = [cash];
       const colors = ['#4a6fa5'];
       holdings.forEach(h => {
-        const val = h.qty * (assetPrices[h.symbol] || currentPrice);
+        const hPrice = assetPrices[h.symbol] || currentPrice;
+        const val = h.qty * hPrice;
         if (val > 0.01) {
           labels.push(h.symbol);
           data.push(val);
@@ -449,9 +457,9 @@
       const top = sorted.slice(0,3);
       const bottom = sorted.slice(-3).reverse();
       container.innerHTML = `
-        <div>🔥 Top Gainers: ${top.map(t => t.symbol + ' +' + t.change.toFixed(1)+'%').join(', ')}</div>
-        <div>📉 Top Losers: ${bottom.map(t => t.symbol + ' ' + t.change.toFixed(1)+'%').join(', ')}</div>
-        <div>⚡ Most Active: ${sorted[0].symbol}</div>
+        <div>Top Gainers: ${top.map(t => t.symbol + ' +' + t.change.toFixed(1)+'%').join(', ')}</div>
+        <div>Top Losers: ${bottom.map(t => t.symbol + ' ' + t.change.toFixed(1)+'%').join(', ')}</div>
+        <div>Most Active: ${sorted[0].symbol}</div>
       `;
     }
 
@@ -459,14 +467,14 @@
     function updateAIReview() {
       const box = document.getElementById('aiReviewBox');
       const trades = userData.trades || [];
-      if (trades.length === 0) { box.innerHTML = '📊 Your trades will be reviewed here. Sell to get AI insights.'; return; }
+      if (trades.length === 0) { box.innerHTML = 'Your trades will be reviewed here. Sell to get AI insights.'; return; }
       const last = trades[trades.length-1];
       if (last.side === 'sell') {
         const pl = last.pl || 0;
-        const advice = pl > 0 ? '✅ Good trade! Risk/Reward was favorable.' : '⚠️ Consider placing a Stop Loss next time. Entry was against trend.';
-        box.innerHTML = `🧠 Trade Review: ${last.symbol} ${last.side} @ $${last.price.toFixed(2)} | P/L: ${pl >= 0 ? '+' : ''}$${pl.toFixed(2)}<br>${advice}`;
+        const advice = pl > 0 ? 'Good trade! Risk/Reward was favorable.' : 'Consider placing a Stop Loss next time. Entry was against trend.';
+        box.innerHTML = `Trade Review: ${last.symbol} ${last.side} @ $${last.price.toFixed(2)} | P/L: ${pl >= 0 ? '+' : ''}$${pl.toFixed(2)}<br>${advice}`;
       } else {
-        box.innerHTML = `📈 Last buy: ${last.symbol} @ $${last.price.toFixed(2)}. Set SL/TP to manage risk.`;
+        box.innerHTML = `Last buy: ${last.symbol} @ $${last.price.toFixed(2)}. Set SL/TP to manage risk.`;
       }
     }
 
@@ -501,6 +509,8 @@
       candlestickSeries.setData(candleData);
       chart.timeScale().fitContent();
       currentPrice = candleData[candleData.length-1].close;
+      // Update assetPrices for current asset
+      assetPrices[currentAsset] = currentPrice;
       document.getElementById('currentPriceLabel').textContent = `$${currentPrice.toFixed(2)}`;
       updateUI();
       window.addEventListener('resize', () => { if(chart) chart.resize(container.clientWidth, 260); });
@@ -514,6 +524,8 @@
       candleData.push(data);
       candlestickSeries.update(data);
       currentPrice = c.close;
+      // CRITICAL FIX: update assetPrices so portfolio uses latest simulated price
+      assetPrices[currentAsset] = currentPrice;
       document.getElementById('currentPriceLabel').textContent = `$${currentPrice.toFixed(2)}`;
       updateUI();
     }
@@ -601,10 +613,10 @@
       const current = assetPrices[symbol] || entryPrice;
       const change = ((current - entryPrice) / entryPrice) * 100;
       if (slPct > 0 && change <= -slPct) {
-        notify(`🔴 Stop Loss hit for ${symbol} at ${current.toFixed(2)}`);
+        notify(`Stop Loss hit for ${symbol} at ${current.toFixed(2)}`);
         autoCloseTrade(symbol, qty, current, 'SL');
       } else if (tpPct > 0 && change >= tpPct) {
-        notify(`🟢 Take Profit hit for ${symbol} at ${current.toFixed(2)}`);
+        notify(`Take Profit hit for ${symbol} at ${current.toFixed(2)}`);
         autoCloseTrade(symbol, qty, current, 'TP');
       }
     }
